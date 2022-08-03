@@ -1,0 +1,25 @@
+<template>
+  <div class="header">
+        <label @click="goBurger">Головна</label>
+        <label @click="goBurger">Вхід</label>
+        <label @click="goBurger">Реєстрація</label>
+        <label @click="goBurger">Оформлення заовлення</label>
+        <label @click="goBurger">+38(066)480 28 48</label>
+        <label @click="goBasket">Корзина</label>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "HeaderMasterpage",
+
+  methods: {
+    goBurger() {
+      console.log();
+      this.$router.push({ name: "products", params: { prodName: "burger" } });
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped></style>

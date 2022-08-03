@@ -1,0 +1,247 @@
+<template>
+   <div >
+    <main-master-page>
+      <template v-slot:main>
+        <div class="addProductContainer">
+    <div>
+      <h1>Додати продукт</h1>
+      <label>
+        Назва :
+        <input class="addContainerInput" type="text" v-model="product.title" />
+      </label>
+    </div>
+    <div>
+      <label>
+        Опис товару :
+        <input class="addContainerInput" type="text" v-model="product.ingredients" />
+      </label>
+    </div>
+    <div class="inputRadio">
+      <fieldset>
+        <legend>Тип продукту</legend>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(1)">
+          <label>Pizza</label>
+        </div>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(2)">
+          <label>Burger</label>
+        </div>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(3)">
+          <label>Set</label>
+        </div>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(4)">
+          <label>Snack</label>
+        </div>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(5)">
+          <label>Sauce</label>
+        </div>
+        <div>
+          <input type="radio" name="typeObg" @click="choice(6)">
+          <label>Drink</label>
+        </div>
+      </fieldset>
+        
+    </div>
+    
+    <div>
+      <label>
+        Ціна :
+        <input class="addContainerInput" type="number" v-model="product.minPrice" />
+      </label>
+    </div>
+    <div>
+      <label>
+        Друга ціна :
+        <input class="addContainerInput" type="number" v-model="product.maxPrice" />
+      </label>
+    </div>
+    <div>
+      <label>
+        Фото :
+        <input  type="file" @input="createLogoImage" />
+      </label>
+      <img class="addContainerImg" :src="photoSrc" alt="" />
+    </div>
+    <button @click="onSave">{{ btnLabel }}</button>
+    <button @click="goBack">Відмінити</button>
+
+        </div>
+       
+      </template>
+    </main-master-page>
+  </div>
+  
+</template>
+
+<script>
+import MainMasterPage from "@/masterpages/MainMasterpage.vue";
+
+import { mapActions , mapGetters} from 'vuex'
+import {Buffer} from 'buffer';
+
+export default {
+  name: 'ProductEdit',
+  components: {
+    MainMasterPage,
+  },
+  data() {
+    return {
+      product: {},
+      rawPhotoData: '',
+      
+    }
+  },
+  watch: {
+    searchProduct() {
+      this.product = this.searchProduct
+      console.log(this.product);
+    }
+  },
+
+  computed: {
+    ...mapGetters('userChooseProd',['searchProduct']),
+    photoSrc() {
+      return (
+        this.rawPhotoData ||
+        (this.product.photo && this.getImgSrc(this.product.photo))
+      )
+    },
+    receivedProductId() {
+      return this.$route.params.id
+    },
+    btnLabel() {
+      return this.receivedProductId ? 'Обновити' : 'Додати'
+    },
+    
+  },
+
+  methods: {
+    ...mapActions('product',['addProduct', 'updateProduct']),
+    ...mapActions('userChooseProd',['getProductById']),
+    choice(type){
+      switch (type) {
+        case 1:
+          this.product.typeProd = "pizza"
+          break;
+        case 2:
+          this.product.typeProd = "burger"
+          break;
+        case 3:
+          this.product.typeProd = "set"
+          break;
+        case 4:
+          this.product.typeProd = "snack"
+          break;
+        case 5:
+          this.product.typeProd = "sauce"
+          break;
+        case 6:
+          this.product.typeProd = "drink"
+          break;
+      
+        default:
+          
+          break;
+      }
+    }
+    ,
+    getImgSrc(photo) {
+      let binary = Buffer.from(photo.data)
+      let imgData = new Blob([binary.buffer], {
+        type: 'application/octet-stream',
+      })
+      let link = URL.createObjectURL(imgData)
+      return link
+    },
+    createLogoImage(event) {
+      const file = event.target.files[0]
+      let reader = new FileReader()
+      const self = this
+      reader.onload = (e) => {
+        self.rawPhotoData = e.target.result
+        self.product.photo = file
+      }
+      reader.readAsDataURL(file)
+    },
+    goBack(){
+        this.$router.push({ name: "productEditList" });
+
+    },
+    async onSave() {
+      try {
+        if (!this.receivedProductId) await this.addProduct(this.product)
+        else {
+          console.log('Prod');
+          console.log(this.product);
+          await this.updateProduct(this.product)}
+        this.$router.push({ name: 'productEditList' })
+      } catch (err) {
+        console.log(err)
+      }
+    },
+  },
+
+  async mounted() {
+    if (this.receivedProductId) {
+      try {
+        this.getProductById({ id :this.receivedProductId})
+      } catch (err) {
+        console.log(err)
+      }
+    }
+  },
+}
+</script>
+
+<style lang="scss" scoped>
+.addProductContainer{
+  text-align: left;
+  width: 400px;
+  background-color: #192021;
+  border: 1px solid #707475;
+    border-top: 3px solid #f46534;
+    margin: 50px auto;
+    padding: 30px;
+    // border-radius: 0;
+    box-shadow: none;
+}
+.addProductContainer div{
+      margin: 15px 0px
+}
+.inputRadio *{
+  display: flex;
+}
+.addContainerInput{
+  width: 50%;
+  background-color: #1c1c1c;
+  color: white;
+  padding: 6.5px 10px 6.5px 20px;
+  border: 2px solid #707475;
+  font-size: 14px;
+    height: 15px;
+}
+.addContainerImg{
+  margin: 15px 0;
+  border: 2px solid orangered;
+  
+}
+button{
+  padding: 11px 22px;
+  // margin: 25px 0;
+  background-color: #f46534;
+  border: 2px solid #f46534 ;
+  color: white;
+  border-radius: 5px
+}
+button:hover{
+  background-color: white;
+  color: #f46534;
+
+}
+</style>
+
+

@@ -1,0 +1,96 @@
+<template>
+  <div class="container">
+    <main-master-page>
+      <template v-slot:main>
+        <div>
+          <h2>Sign up</h2>
+          <form @submit.prevent="submit">
+            <div>
+              Name :
+              <input
+                type="text"
+                v-model="userName"
+                name="name"
+                placeholder="Name"
+              />
+            </div>
+            <div>
+              email :
+              <input
+                type="email"
+                v-model="email"
+                name="email"
+                placeholder="Email"
+              />
+            </div>
+            <div class="form-group">
+              Password :
+              <input
+                type="password"
+                v-model="password"
+                name="password"
+                placeholder="Password"
+              />
+            </div>
+            <div v-if="message">{{ message }}</div>
+            <div>
+              <button type="submit">Sign up</button>
+            </div>
+          </form>
+        </div>
+      </template>
+    </main-master-page>
+  </div>
+</template>
+
+<script>
+import MainMasterPage from "@/masterpages/MainMasterpage.vue";
+
+import { mapActions } from "vuex";
+export default {
+  name: "SignupPage",
+  components: {
+    MainMasterPage,
+  },
+  data() {
+    return {
+      userName: "",
+      email: "",
+      password: "",
+      admin: false,
+      message: "",
+    };
+  },
+
+  methods: {
+    ...mapActions("auth", ["signup", "logout"]),
+
+    async submit() {
+      try {
+        const user = {
+          name: this.userName,
+          email: this.email,
+          password: this.password,
+          admin: this.admin,
+        };
+        const result = await this.signup(user);
+        if (result === true) {
+          this.message = "";
+          this.$router.push({
+            path: "/login",
+            query: { signedup: "true" },
+          });
+        } else {
+          this.message = result; //'SignUp error!';
+        }
+      } catch (err) {
+        this.message = err.message;
+      }
+    },
+  },
+
+  created() {
+    this.logout();
+  },
+};
+</script>
